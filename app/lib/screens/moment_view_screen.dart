@@ -24,13 +24,22 @@ class MomentViewScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionByIdProvider(sessionId));
-    final allUtterances = ref.watch(utterancesBySessionProvider(sessionId));
+    final utterancesAsync = ref.watch(utterancesBySessionProvider(sessionId));
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
     if (session == null) {
       return Scaffold(appBar: AppBar(), body: const Center(child: Text('Session not found.')));
     }
+
+    if (utterancesAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Moment')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final allUtterances = utterancesAsync.valueOrNull ?? [];
 
     final targetIdx = allUtterances.indexWhere((u) => u.id == utteranceId);
     if (targetIdx < 0) {

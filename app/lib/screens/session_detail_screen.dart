@@ -27,8 +27,8 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(sessionByIdProvider(widget.sessionId));
-    final utterances = ref.watch(utterancesBySessionProvider(widget.sessionId));
-    final extractions = ref.watch(extractionsBySessionProvider(widget.sessionId));
+    final utterancesAsync = ref.watch(utterancesBySessionProvider(widget.sessionId));
+    final extractionsAsync = ref.watch(extractionsBySessionProvider(widget.sessionId));
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -39,10 +39,22 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
       );
     }
 
+    final utterances = utterancesAsync.valueOrNull ?? [];
+    final extractions = extractionsAsync.valueOrNull ?? [];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(session.title, overflow: TextOverflow.ellipsis),
         actions: [
+          if (utterancesAsync.isLoading || extractionsAsync.isLoading)
+            const Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           if (session.isPrivate)
             Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -70,6 +82,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                     sliver: SliverToBoxAdapter(
                       child: _ExtractionsSection(
                         extractions: extractions,
+                        sessionId: widget.sessionId,
                         ref: ref,
                       ),
                     ),
@@ -88,7 +101,14 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                 ),
 
                 // Utterances
-                if (utterances.isEmpty)
+                if (utterancesAsync.isLoading)
+                  const SliverPadding(
+                    padding: EdgeInsets.all(16),
+                    sliver: SliverToBoxAdapter(
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  )
+                else if (utterances.isEmpty)
                   SliverPadding(
                     padding: const EdgeInsets.all(16),
                     sliver: SliverToBoxAdapter(
@@ -133,11 +153,9 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     Duration offset,
   ) {
     if (session.audioPath != null) {
-      // Seek and play from this offset
       setState(() => _activeUtteranceId = utteranceId);
       ref.read(playerProvider.notifier).seekToOffset(offset);
     } else {
-      // Navigate to moment view
       final base = GoRouterState.of(context).uri.path;
       if (base.startsWith('/library')) {
         context.go('/library/session/${session.id}/moment/$utteranceId');
@@ -248,13 +266,18 @@ class _MetaChip extends StatelessWidget {
 
 class _ExtractionsSection extends StatelessWidget {
   final List<Extraction> extractions;
+  final String sessionId;
   final WidgetRef ref;
-  const _ExtractionsSection({required this.extractions, required this.ref});
+
+  const _ExtractionsSection({
+    required this.extractions,
+    required this.sessionId,
+    required this.ref,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -268,14 +291,20 @@ class _ExtractionsSection extends StatelessWidget {
           children: extractions.map((e) => ExtractionChip(
             extraction: e,
             onAccept: e.status == ExtractionStatus.pending
-                ? () => ref.read(extractionsProvider.notifier).updateStatus(e.id, ExtractionStatus.accepted)
+                ? () => _updateStatus(e.id, ExtractionStatus.accepted)
                 : null,
             onDismiss: e.status == ExtractionStatus.pending
-                ? () => ref.read(extractionsProvider.notifier).updateStatus(e.id, ExtractionStatus.dismissed)
+                ? () => _updateStatus(e.id, ExtractionStatus.dismissed)
                 : null,
           )).toList(),
         ),
       ],
     );
+  }
+
+  void _updateStatus(String id, ExtractionStatus status) {
+    // Push to API and update local state; then refresh the per-session cache.
+    ref.read(extractionsProvider.notifier).updateStatus(id, status);
+    ref.invalidate(extractionsBySessionProvider(sessionId));
   }
 }

@@ -70,4 +70,20 @@ class Extraction {
       status: ExtractionStatus.values.byName(json['status'] as String),
     );
   }
+
+  /// Construct an [Extraction] from the Django REST Framework API response.
+  /// The API uses snake_case and UUID FK fields (`session`, `utterance`, `owed_by`).
+  factory Extraction.fromApi(Map<String, dynamic> json) {
+    final dueHint = json['due_hint'] as String?;
+    return Extraction(
+      id: json['id'] as String,
+      sessionId: json['session'] as String,
+      utteranceId: json['utterance'] as String,
+      text: json['text'] as String,
+      kind: ExtractionKind.values.byName(json['kind'] as String),
+      owedBy: json['owed_by'] as String?,
+      dueHint: (dueHint != null && dueHint.isNotEmpty) ? dueHint : null,
+      status: ExtractionStatus.values.byName(json['status'] as String),
+    );
+  }
 }

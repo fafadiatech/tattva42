@@ -26,7 +26,15 @@ class _AnswerViewScreenState extends ConsumerState<AnswerViewScreen> {
   }
 
   Future<void> _fetch() async {
-    final answer = await mockAnswer(widget.query);
+    // Try the API first; fall back to the local mock-answer function.
+    MockAnswer? answer;
+    try {
+      final api = ref.read(apiServiceProvider);
+      answer = await api.ask(widget.query);
+    } catch (_) {
+      // ignore: depend_on_referenced_packages
+      answer = await mockAnswer(widget.query);
+    }
     if (mounted) {
       setState(() {
         _answer = answer;

@@ -24,13 +24,22 @@ class UtterancesNotifier extends AsyncNotifier<List<Utterance>> {
 final utterancesProvider =
     AsyncNotifierProvider<UtterancesNotifier, List<Utterance>>(UtterancesNotifier.new);
 
+/// Per-session utterances provider that fetches from the API when available,
+/// falling back to the local+mock corpus for seeded/offline sessions.
 final utterancesBySessionProvider =
-    Provider.family<List<Utterance>, String>((ref, sessionId) {
-  final all = ref.watch(utterancesProvider);
-  return all.maybeWhen(
-    data: (list) =>
-        list.where((u) => u.sessionId == sessionId).toList()
-          ..sort((a, b) => a.offset.compareTo(b.offset)),
-    orElse: () => [],
-  );
+    FutureProvider.family<List<Utterance>, String>((ref, sessionId) async {
+  final api = ref.read(apiServiceProvider);
+  try {
+    final apiUtterances = await api.getUtterancesForSession(sessionId);
+    if (apiUtterances.isNotEmpty) return apiUtterances;
+  } catch (_) {
+    // API unavailable or session not on backend — fall through to local data.
+  }
+
+  // Fallback: filter from the local+mock corpus.
+  final all = await ref.watch(utterancesProvider.future);
+  return all
+      .where((u) => u.sessionId == sessionId)
+      .toList()
+    ..sort((a, b) => a.offset.compareTo(b.offset));
 });

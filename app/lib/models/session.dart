@@ -94,4 +94,29 @@ class Session {
       isSeeded: json['isSeeded'] as bool? ?? false,
     );
   }
+
+  /// Construct a [Session] from the Django REST Framework API response.
+  /// Field names are snake_case; participants is a list of Person objects.
+  factory Session.fromApi(Map<String, dynamic> json) {
+    final participants = json['participants'] as List? ?? [];
+    final location = json['location'] as String?;
+    return Session(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      summary: json['summary'] as String? ?? '',
+      startedAt: DateTime.parse(json['started_at'] as String),
+      duration: Duration(seconds: json['duration_seconds'] as int),
+      mode: CaptureMode.values.byName(json['mode'] as String),
+      location: (location != null && location.isNotEmpty) ? location : null,
+      participantIds: participants
+          .map((p) => (p as Map<String, dynamic>)['id'] as String)
+          .toList(),
+      syncState: SyncState.values.byName(
+        json['sync_state'] as String? ?? 'synced',
+      ),
+      isPrivate: json['is_private'] as bool? ?? false,
+      audioPath: null, // API sessions use server-side storage; local path is null
+      isSeeded: json['is_seeded'] as bool? ?? false,
+    );
+  }
 }

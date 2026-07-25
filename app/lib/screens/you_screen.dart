@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../mock/mock_data.dart';
 import '../providers/sessions_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_text_styles.dart';
 
 class YouScreen extends ConsumerWidget {
@@ -76,6 +77,7 @@ class YouScreen extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // Settings / nav
+          _DarkModeTile(),
           _SettingsTile(
             icon: Icons.shield_outlined,
             title: 'Privacy centre',
@@ -158,6 +160,27 @@ class _StatCard extends StatelessWidget {
               textAlign: TextAlign.center),
         ],
       ),
+    );
+  }
+}
+
+class _DarkModeTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    final systemIsDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final isDark = mode == ThemeMode.dark ||
+        (mode == ThemeMode.system && systemIsDark);
+
+    return SwitchListTile(
+      secondary: Icon(isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined),
+      title: const Text('Dark mode'),
+      subtitle: Text(mode == ThemeMode.system ? 'Using system setting' : ''),
+      value: isDark,
+      onChanged: (on) {
+        ref.read(themeModeProvider.notifier).state =
+            on ? ThemeMode.dark : ThemeMode.light;
+      },
     );
   }
 }

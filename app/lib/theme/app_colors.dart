@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 @immutable
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
-    this.seed = const Color(0xFF485696),
+    this.seed = const Color(0xFF2563EB),
     this.figureAccent = const Color(0xFFF9C784),
   });
 

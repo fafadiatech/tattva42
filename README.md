@@ -1,34 +1,86 @@
 # Tattva42
 
-A second brain prototype for capturing, transcribing, and searching conversations, meetings, and ideas.
+Your conversations are full of decisions, commitments, and ideas — Tattva42 makes sure none of them slip through the cracks.
 
-## Repository layout
+Record a meeting, a quick chat, or a passing thought. Tattva42 transcribes it on-device, surfaces the commitments and decisions automatically, and lets you search across everything in plain language.
 
-```
-tattva42/
-  app/        Flutter mobile app (iOS + Android)
-  backend/    Django REST Framework API
-```
+---
 
-## App (`app/`)
+## What it does
 
-Flutter application targeting iOS and Android. Records audio from the phone microphone, transcribes on-device, extracts commitments and decisions, and lets you search across everything.
+**Capture** — Record meetings, ambient conversations, or voice dictation from your phone. Audio stays on-device; no cloud upload required.
 
-**Stack:** Flutter / Dart 3, Riverpod, go_router, `record`, `just_audio`, `speech_to_text`
+**Transcribe** — On-device speech recognition turns recordings into full transcripts in real time. No internet needed.
+
+**Extract** — Tattva42 automatically identifies commitments ("I'll send that by Friday"), decisions, and action items buried inside conversations.
+
+**Search** — Ask a question in plain language and get a direct answer with citations — pinpointing exactly which session it came from and where in the recording.
+
+---
+
+## Capture modes
+
+| Mode | Best for |
+|---|---|
+| **Meeting** | Structured conversations with multiple speakers |
+| **Ambient** | Background capture during site visits or casual chats |
+| **Dictation** | Solo voice notes and reflections |
+
+---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="app/screenshots/01.png" width="200" alt="Today screen" /><br/>
+      <sub><b>Today</b> — Commitments and decisions needing attention, plus recent sessions</sub>
+    </td>
+    <td align="center">
+      <img src="app/screenshots/02.png" width="200" alt="Ask screen" /><br/>
+      <sub><b>Ask</b> — Search across all sessions in plain language</sub>
+    </td>
+    <td align="center">
+      <img src="app/screenshots/03.png" width="200" alt="Recording in progress" /><br/>
+      <sub><b>Capture</b> — Live recording with waveform, markers, and pause/stop</sub>
+    </td>
+    <td align="center">
+      <img src="app/screenshots/04.png" width="200" alt="Library screen" /><br/>
+      <sub><b>Library</b> — All sessions, filterable by Ambient, Meeting, or Dictation</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+## Key screens
+
+- **Today** — At-a-glance view of pending commitments, decisions, and recent sessions
+- **Ask** — Natural language search across all sessions with cited answers
+- **Library** — Full session history, filterable by capture mode
+- **You** — Profile, privacy settings, and storage summary
+
+---
+
+## Status
+
+This is a working prototype. The Flutter app runs standalone with mock data — no backend required to try it. The Django backend mirrors the full data model and exposes the same search capability via API for integration work.
+
+---
+
+## Running the app
 
 ```bash
 cd app
 flutter pub get
-flutter run          # requires a physical device for microphone
+flutter run          # physical device recommended for microphone access
 ```
 
-See `app/README.md` for full setup, permissions, and canned Ask queries.
+Requires Flutter 3.x / Dart 3. No code generation step needed.
 
-## Backend (`backend/`)
+See [`app/README.md`](app/README.md) for permissions setup, seeded sessions, and canned search queries.
 
-Django + Django REST Framework API with PostgreSQL. Mirrors the app's data model — sessions, utterances, extractions, people, threads — and exposes a keyword-search `/ask/` endpoint.
-
-**Stack:** Python 3.11, Django 4.2, DRF, PostgreSQL, Docker
+## Running the backend
 
 ```bash
 cd backend
@@ -38,6 +90,6 @@ docker compose exec web python manage.py migrate
 docker compose exec web python manage.py seed_data
 ```
 
-API available at `http://localhost:8000/api/v1/`. Admin at `http://localhost:8000/admin/`.
+API at `http://localhost:8000/api/v1/` · Admin at `http://localhost:8000/admin/`
 
-See `backend/README.md` for full API reference and local setup without Docker.
+See [`backend/README.md`](backend/README.md) for the full API reference and local setup without Docker.

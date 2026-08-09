@@ -1,8 +1,16 @@
 # Tattva42
 
+<p align="center">
+  <img src="logo.png" width="120" alt="Tattva42 logo" />
+</p>
+
 Your conversations are full of decisions, commitments, and ideas — Tattva42 makes sure none of them slip through the cracks.
 
 Record a meeting, a quick chat, or a passing thought. Tattva42 transcribes it on-device, surfaces the commitments and decisions automatically, and lets you search across everything in plain language.
+
+<p align="center">
+  <img src="product-banner.png" alt="Tattva42 product banner" width="800" />
+</p>
 
 ---
 
